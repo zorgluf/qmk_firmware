@@ -15,6 +15,7 @@ from qmk.commands import compile_configurator_json, create_make_command, parse_c
 @cli.argument('-kb', '--keyboard', help='The keyboard to build a firmware for. Ignored when a configurator export is supplied.')
 @cli.argument('-km', '--keymap', help='The keymap to build a firmware for. Ignored when a configurator export is supplied.')
 @cli.argument('-n', '--dry-run', arg_only=True, action='store_true', help="Don't actually build, just show the make command to be run.")
+@cli.argument('-c', '--clean', arg_only=True, action='store_true', help="Remove the build cache before compiling.")
 @cli.subcommand('Compile a QMK Firmware.')
 @automagic_keyboard
 @automagic_keymap
@@ -45,6 +46,14 @@ def compile(cli):
 
     # Compile the firmware, if we're able to
     if command:
+        if cli.args.clean:
+            clean_command = [*command]
+            clean_command[-1] += ':clean'
+            cli.log.info('Cleaning build tree with {fg_cyan}%s', ' '.join(command))
+            if not cli.args.dry_run:
+                cli.echo('\n')
+                subprocess.run(clean_command)
+
         cli.log.info('Compiling keymap with {fg_cyan}%s', ' '.join(command))
         if not cli.args.dry_run:
             cli.echo('\n')
